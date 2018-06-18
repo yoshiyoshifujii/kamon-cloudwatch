@@ -1,6 +1,3 @@
-import scalariform.formatter.preferences._
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-
 val kamonCore    = "io.kamon" %% "kamon-core"    % "1.1.3"
 val kamonTestKit = "io.kamon" %% "kamon-testkit" % "1.1.3"
 
