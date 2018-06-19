@@ -1,19 +1,20 @@
 package kamon.cloudwatch
 
 import com.amazonaws.ClientConfiguration
-import com.amazonaws.services.cloudwatch.model.{ MetricDatum, PutMetricDataRequest }
+import com.amazonaws.services.cloudwatch.model._
 import com.amazonaws.services.cloudwatch.{ AmazonCloudWatchAsync, AmazonCloudWatchAsyncClientBuilder }
 import com.typesafe.config.Config
-import kamon.metric.{ MetricDistribution, MetricValue, PeriodSnapshot }
+import kamon.cloudwatch.CloudWatchAPIReporter.MeasurementUnitToStandardUnitF
+import kamon.metric._
 import kamon.{ Kamon, MetricReporter }
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-class CloudWatchAPIReporter(other: ClientConfiguration = new ClientConfiguration())(implicit ex: ExecutionContext)
-    extends MetricReporter {
-  import CloudWatchAPIReporter._
+private[cloudwatch] class CloudWatchAPIReporter(other: ClientConfiguration, f: MeasurementUnitToStandardUnitF)(
+    implicit ex: ExecutionContext
+) extends MetricReporter {
   import JavaFutureConverter._
 
   private val logger           = LoggerFactory.getLogger(classOf[CloudWatchAPIReporter])
@@ -34,15 +35,9 @@ class CloudWatchAPIReporter(other: ClientConfiguration = new ClientConfiguration
   }
 
   override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
-    val metricData: Seq[MetricDatum] =
-    snapshot.metrics.counters.map(convert) ++
-    snapshot.metrics.gauges.map(convert) ++
-    snapshot.metrics.histograms.map(convert) ++
-    snapshot.metrics.rangeSamplers.map(convert)
-
     val putMetricDataRequest = new PutMetricDataRequest()
       .withNamespace(configuration.namespace)
-      .withMetricData(metricData.asJava)
+      .withMetricData(Converter(configuration, snapshot, f).converts.asJavaCollection)
 
     cloudWatchClient
       .putMetricDataAsync(putMetricDataRequest)
@@ -55,7 +50,7 @@ class CloudWatchAPIReporter(other: ClientConfiguration = new ClientConfiguration
       )
   }
 
-  private[cloudwatch] def createCloudWatchClient(configuration: Configuration): AmazonCloudWatchAsync =
+  private def createCloudWatchClient(configuration: Configuration): AmazonCloudWatchAsync =
     AmazonCloudWatchAsyncClientBuilder
       .standard()
       .withClientConfiguration(new ClientConfiguration(other))
@@ -66,21 +61,19 @@ class CloudWatchAPIReporter(other: ClientConfiguration = new ClientConfiguration
 
 object CloudWatchAPIReporter {
 
-  case class Configuration(region: String, namespace: String)
+  type MeasurementUnitToStandardUnitF = MeasurementUnit => Option[StandardUnit]
 
-  object Configuration {
+  private val defaultF: MeasurementUnitToStandardUnitF = _ => None
 
-    def readConfiguration(config: Config): CloudWatchAPIReporter.Configuration = {
-      val cloudWatchConfig = config.getConfig("kamon.cloudwatch")
+  def apply()(implicit ex: ExecutionContext): CloudWatchAPIReporter =
+    new CloudWatchAPIReporter(other = new ClientConfiguration(), f = defaultF)
 
-      CloudWatchAPIReporter.Configuration(
-        region = cloudWatchConfig.getString("region"),
-        namespace = cloudWatchConfig.getString("namespace")
-      )
-    }
+  def apply(other: ClientConfiguration)(implicit ex: ExecutionContext) =
+    new CloudWatchAPIReporter(other = other, f = defaultF)
 
-  }
+  def apply(f: MeasurementUnitToStandardUnitF)(implicit ex: ExecutionContext) =
+    new CloudWatchAPIReporter(other = new ClientConfiguration(), f = f)
 
-  def convert(metricValue: MetricValue): MetricDatum               = ???
-  def convert(metricDistribution: MetricDistribution): MetricDatum = ???
+  def apply(other: ClientConfiguration, f: MeasurementUnitToStandardUnitF)(implicit ex: ExecutionContext) =
+    new CloudWatchAPIReporter(other = other, f = f)
 }
