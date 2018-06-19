@@ -24,19 +24,21 @@ private[cloudwatch] case class Converter(configuration: Configuration,
           .withValue(v)
     }.asJavaCollection
 
+  private val MeasurementUnitMap: Map[MeasurementUnit, StandardUnit] =
+    Map(
+      MeasurementUnit.none                  -> StandardUnit.None,
+      MeasurementUnit.percentage            -> StandardUnit.Percent,
+      MeasurementUnit.time.seconds          -> StandardUnit.Seconds,
+      MeasurementUnit.time.milliseconds     -> StandardUnit.Milliseconds,
+      MeasurementUnit.time.microseconds     -> StandardUnit.Microseconds,
+      MeasurementUnit.information.bytes     -> StandardUnit.Bytes,
+      MeasurementUnit.information.kilobytes -> StandardUnit.Kilobytes,
+      MeasurementUnit.information.megabytes -> StandardUnit.Megabytes,
+      MeasurementUnit.information.gigabytes -> StandardUnit.Gigabytes
+    )
+
   private def toStandardUnit: MeasurementUnit => StandardUnit =
-    f(_).getOrElse {
-      case MeasurementUnit.none                  => StandardUnit.None
-      case MeasurementUnit.percentage            => StandardUnit.Percent
-      case MeasurementUnit.time.seconds          => StandardUnit.Seconds
-      case MeasurementUnit.time.milliseconds     => StandardUnit.Milliseconds
-      case MeasurementUnit.time.microseconds     => StandardUnit.Microseconds
-      case MeasurementUnit.information.bytes     => StandardUnit.Bytes
-      case MeasurementUnit.information.kilobytes => StandardUnit.Kilobytes
-      case MeasurementUnit.information.megabytes => StandardUnit.Megabytes
-      case MeasurementUnit.information.gigabytes => StandardUnit.Gigabytes
-      case _                                     => StandardUnit.None
-    }
+    unit => f(unit).getOrElse(MeasurementUnitMap.getOrElse(unit, StandardUnit.None))
 
   private def toStatisticSet(distribution: Distribution): StatisticSet =
     new StatisticSet()
