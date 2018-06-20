@@ -7,7 +7,7 @@ import com.typesafe.config.Config
 import kamon.cloudwatch.CloudWatchAPIReporter.MeasurementUnitToStandardUnitF
 import kamon.metric._
 import kamon.{ Kamon, MetricReporter }
-import org.slf4j.LoggerFactory
+import org.slf4j.{ Logger, LoggerFactory }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -17,9 +17,9 @@ private[cloudwatch] class CloudWatchAPIReporter(other: ClientConfiguration, f: M
 ) extends MetricReporter {
   import JavaFutureConverter._
 
-  private val logger           = LoggerFactory.getLogger(classOf[CloudWatchAPIReporter])
-  private var configuration    = Configuration.readConfiguration(Kamon.config())
-  private var cloudWatchClient = createCloudWatchClient(configuration)
+  private implicit val logger: Logger = LoggerFactory.getLogger(classOf[CloudWatchAPIReporter])
+  private var configuration           = Configuration.readConfiguration(Kamon.config())
+  private var cloudWatchClient        = createCloudWatchClient(configuration)
 
   override def start(): Unit =
     logger.info("Started the CloudWatch API reporter.")
@@ -34,21 +34,22 @@ private[cloudwatch] class CloudWatchAPIReporter(other: ClientConfiguration, f: M
     logger.info("Reconfigure the CloudWatch API reporter.")
   }
 
-  override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit = {
-    val putMetricDataRequest = new PutMetricDataRequest()
-      .withNamespace(configuration.namespace)
-      .withMetricData(Converter(configuration, snapshot, f).converts.asJavaCollection)
+  override def reportPeriodSnapshot(snapshot: PeriodSnapshot): Unit =
+    Converter(configuration, snapshot, f).converts.grouped(20).foreach { metricData =>
+      val putMetricDataRequest = new PutMetricDataRequest()
+        .withNamespace(configuration.namespace)
+        .withMetricData(metricData.asJavaCollection)
 
-    cloudWatchClient
-      .putMetricDataAsync(putMetricDataRequest)
-      .toScala
-      .onComplete(
-        _.fold(
-          cause => logger.error("Kamon CloudWatch API Reporter is error.", cause),
-          _ => ()
+      cloudWatchClient
+        .putMetricDataAsync(putMetricDataRequest)
+        .toScala
+        .onComplete(
+          _.fold(
+            cause => logger.error("Kamon CloudWatch API Reporter is error.", cause),
+            _ => ()
+          )
         )
-      )
-  }
+    }
 
   private def createCloudWatchClient(configuration: Configuration): AmazonCloudWatchAsync =
     AmazonCloudWatchAsyncClientBuilder
