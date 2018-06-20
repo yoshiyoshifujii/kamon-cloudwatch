@@ -1,5 +1,5 @@
-val kamonCore    = "io.kamon" %% "kamon-core"    % "1.1.3"
-val kamonTestKit = "io.kamon" %% "kamon-testkit" % "1.1.3"
+val kamonCore     = "io.kamon"      %% "kamon-core"             % "1.1.3"
+val kamonTestKit  = "io.kamon"      %% "kamon-testkit"          % "1.1.3"
 val awsCloudWatch = "com.amazonaws" % "aws-java-sdk-cloudwatch" % "1.11.349"
 
 lazy val root = (project in file("."))
