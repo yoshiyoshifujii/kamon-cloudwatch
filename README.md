@@ -22,7 +22,7 @@ libraryDependencies += "com.github.yoshiyoshifujii" %% "kamon-cloudwatch" % "0.1
 
 And add the API reporter to Kamon:
 
-```
+```scala
 implicit val system: ActorSystem = ActorSystem()
 
 Kamon.addReporter(CloudWatchAPIReporter()(system.dispatchers.lookup("blocking-io-dispatcher-cloudwatch")))
