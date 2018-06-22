@@ -19,6 +19,7 @@ def scalaCompact = Def.setting {
 }
 
 lazy val mavenCentral = Seq(
+  organization := "com.github.yoshiyoshifujii",
   sonatypeProfileName := "com.github.yoshiyoshifujii",
   publishMavenStyle := true,
   publishTo := sonatypePublishTo.value,
