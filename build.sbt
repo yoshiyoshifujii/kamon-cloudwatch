@@ -29,12 +29,6 @@ lazy val mavenCentral = Seq(
   },
   pomExtra := {
     <url>https://github.com/yoshiyoshifujii/kamon-cloudwatch</url>
-      <licenses>
-        <license>
-          <name>The MIT License</name>
-          <url>http://opensource.org/licenses/MIT</url>
-        </license>
-      </licenses>
       <scm>
         <url>git@github.com:yoshiyoshifujii/kamon-cloudwatch.git</url>
         <connection>scm:git:github.com/yoshiyoshifujii/kamon-cloudwatch</connection>
