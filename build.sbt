@@ -27,7 +27,7 @@ lazy val mavenCentral = Seq(
   pomIncludeRepository := { _ =>
     false
   },
-  pomExtra :=
+  pomExtra := {
     <url>https://github.com/yoshiyoshifujii/kamon-cloudwatch</url>
       <licenses>
         <license>
@@ -37,13 +37,14 @@ lazy val mavenCentral = Seq(
       </licenses>
       <scm>
         <url>git@github.com:yoshiyoshifujii/kamon-cloudwatch.git</url>
-        <connection>scm:git:git@github.com:yoshiyoshifujii/kamon-cloudwatch.git</connection>
+        <connection>scm:git:github.com/yoshiyoshifujii/kamon-cloudwatch</connection>
+        <developerConnection>scm:git:git@github.com:yoshiyoshifujii/kamon-cloudwatch.git</developerConnection>
       </scm>
       <developers>
         <developer>
           <id>yoshiyoshifujii</id>
           <name>Yoshitaka Fujii</name>
-          <url>https://github.com/yoshiyoshifujii</url>
         </developer>
       </developers>
+  }
 )
