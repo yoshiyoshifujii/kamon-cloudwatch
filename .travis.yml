@@ -1,11 +1,25 @@
 language: scala
-script:
-  - sbt test
+
+sudo: false
+
 scala:
    - 2.12.1
+
 jdk:
    - oraclejdk8
+
+before_cache:
+  - find $HOME/.ivy2 -name "ivydata-*.properties" -print -delete
+  - find $HOME/.sbt  -name "*.lock"               -print -delete
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot
+
 before_script:
   - mkdir $TRAVIS_BUILD_DIR/tmp
   - export SBT_OPTS="-Djava.io.tmpdir=$TRAVIS_BUILD_DIR/tmp"
-sudo: false
+
+script:
+  - sbt test
