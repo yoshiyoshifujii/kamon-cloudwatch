@@ -11,6 +11,7 @@ import org.slf4j.{ Logger, LoggerFactory }
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+import scala.util.Failure
 
 private[cloudwatch] class CloudWatchAPIReporter(other: ClientConfiguration, f: MeasurementUnitToStandardUnitF)(
     implicit ex: ExecutionContext
@@ -43,12 +44,10 @@ private[cloudwatch] class CloudWatchAPIReporter(other: ClientConfiguration, f: M
       cloudWatchClient
         .putMetricDataAsync(putMetricDataRequest)
         .toScala
-        .onComplete(
-          _.fold(
-            cause => logger.error("Kamon CloudWatch API Reporter is error.", cause),
-            _ => ()
-          )
-        )
+        .onComplete {
+          case Failure(cause) => logger.error("Kamon CloudWatch API Reporter is error.", cause)
+          case _              => ()
+        }
     }
 
   private def createCloudWatchClient(configuration: Configuration): AmazonCloudWatchAsync =

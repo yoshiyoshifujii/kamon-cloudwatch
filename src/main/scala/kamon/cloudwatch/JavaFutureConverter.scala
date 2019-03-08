@@ -3,7 +3,6 @@ package kamon.cloudwatch
 import java.util.concurrent.{ ExecutionException, Future => JavaFuture }
 
 import scala.concurrent.{ ExecutionContext, Future => ScalaFuture }
-import scala.util.Failure
 
 object JavaFutureConverter {
 
@@ -12,10 +11,9 @@ object JavaFutureConverter {
   }
 
   def toScala[A](jf: JavaFuture[A])(implicit ec: ExecutionContext): ScalaFuture[A] = {
-    ScalaFuture(jf.get()).transform {
-      case Failure(e: ExecutionException) =>
-        Failure(e.getCause)
-      case x => x
-    }
+    ScalaFuture(jf.get())
+      .recoverWith {
+        case e: ExecutionException => ScalaFuture.failed(e.getCause)
+      }
   }
 }
