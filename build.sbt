@@ -23,6 +23,10 @@ lazy val mavenCentral = Seq(
   sonatypeProfileName := "com.github.yoshiyoshifujii",
   publishMavenStyle := true,
   publishTo := sonatypePublishTo.value,
+  credentials := {
+    val ivyCredentials = (baseDirectory in LocalRootProject).value / ".credentials"
+    Credentials(ivyCredentials) :: Nil
+  },
   publishArtifact in Test := false,
   pomIncludeRepository := { _ =>
     false
