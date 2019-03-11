@@ -15,12 +15,12 @@ Supported releases and dependencies are shown below.
 
 | kamon-cloudwatch  | status | jdk  | scala            |
 |:-----------------:|:------:|:----:|------------------|
-|  0.1.0            | stable | 1.8+ | 2.12             |
+|  0.2.0            | stable | 1.8+ | 2.10,2.11,2.12   |
 
 To get started with SBT, simply add the following to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "com.github.yoshiyoshifujii" %% "kamon-cloudwatch" % "0.1.0"
+libraryDependencies += "com.github.yoshiyoshifujii" %% "kamon-cloudwatch" % "0.2.0"
 ```
 
 And add the API reporter to Kamon:
